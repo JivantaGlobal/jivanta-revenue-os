@@ -230,8 +230,8 @@ export const DB = {
 
         console.info(`[DB] Database "${DB_NAME}" v${DB_VERSION} initialized.`);
         
-        // Setup Firebase Live Sync
-        await this.initFirebase();
+        // Setup Firebase Live Sync (non-blocking)
+        this.initFirebase();
 
         resolve(dbInstance);
       };
