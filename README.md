@@ -16,4 +16,4 @@ This repository is pre-configured with `vercel.json` for SPA clean URL routing.
 
 1. Link this repository to your Vercel account.
 2. Deploy.
-3. Access Settings ➔ Database Operations in the CRM to sync and push your records.
+3. Access Settings ➔ Database Operations in the CRM to sync and push your records. (Production Build Trigger)
