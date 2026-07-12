@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jivanta Global — B2B Lead Intelligence Dashboard</title>
+  <meta name="description" content="B2B Lead Generation Database for Jivanta Global Pvt Ltd — Biomass Pellets, Peanuts, Maize, Tobacco">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: #1a2332;
+      --bg-card-hover: #1f2b3d;
+      --border: #2a3548;
+      --border-glow: #3b82f6;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-violet: #8b5cf6;
+      --accent-orange: #f97316;
+      --gradient-1: linear-gradient(135deg, #3b82f6, #06b6d4);
+      --gradient-2: linear-gradient(135deg, #10b981, #06b6d4);
+      --gradient-3: linear-gradient(135deg, #f59e0b, #f97316);
+      --gradient-4: linear-gradient(135deg, #8b5cf6, #ec4899);
+      --gradient-5: linear-gradient(135deg, #f43f5e, #f97316);
+      --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === HEADER === */
+    .header {
+      background: linear-gradient(180deg, rgba(59,130,246,0.08) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .header-inner {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--gradient-1);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+    }
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: var(--gradient-1);
+      color: white;
+      box-shadow: 0 4px 15px rgba(59,130,246,0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(59,130,246,0.05);
+    }
+
+    /* === STATS BAR === */
+    .stats-bar {
+      max-width: 1600px;
+      margin: 24px auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-glow);
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+    .stat-card:nth-child(1)::before { background: var(--gradient-1); }
+    .stat-card:nth-child(2)::before { background: var(--gradient-2); }
+    .stat-card:nth-child(3)::before { background: var(--gradient-3); }
+    .stat-card:nth-child(4)::before { background: var(--gradient-4); }
+    .stat-card:nth-child(5)::before { background: var(--gradient-5); }
+    .stat-card:nth-child(6)::before { background: var(--gradient-1); }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .stat-card:nth-child(1) .stat-value { color: var(--accent-blue); }
+    .stat-card:nth-child(2) .stat-value { color: var(--accent-emerald); }
+    .stat-card:nth-child(3) .stat-value { color: var(--accent-amber); }
+    .stat-card:nth-child(4) .stat-value { color: var(--accent-violet); }
+    .stat-card:nth-child(5) .stat-value { color: var(--accent-rose); }
+    .stat-card:nth-child(6) .stat-value { color: var(--accent-cyan); }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* === FILTERS === */
+    .filters-section {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 32px 16px;
+    }
+    .filters-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-box input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+    .filter-select {
+      padding: 12px 36px 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus {
+      border-color: var(--accent-blue);
+    }
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+    .pill:hover, .pill.active {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(59,130,246,0.1);
+    }
+    .pill.active {
+      background: rgba(59,130,246,0.15);
+    }
+
+    /* === TABLE === */
+    .table-section {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 16px 32px 48px;
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .results-count {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .results-count strong {
+      color: var(--accent-blue);
+    }
+    .table-wrapper {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--bg-card);
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+    }
+    thead {
+      background: rgba(59,130,246,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s;
+    }
+    th:hover {
+      color: var(--accent-blue);
+    }
+    th.sorted {
+      color: var(--accent-blue);
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(42,53,72,0.5);
+      transition: background 0.15s ease;
+      cursor: pointer;
+    }
+    tbody tr:hover {
+      background: rgba(59,130,246,0.04);
+    }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      vertical-align: top;
+      max-width: 250px;
+    }
+    .company-name {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .country-flag {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .badge-high {
+      background: rgba(16,185,129,0.15);
+      color: #34d399;
+      border: 1px solid rgba(16,185,129,0.25);
+    }
+    .badge-medium {
+      background: rgba(245,158,11,0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+    .badge-low {
+      background: rgba(244,63,94,0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244,63,94,0.25);
+    }
+    .product-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .product-biomass { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+    .product-maize { background: rgba(245,158,11,0.12); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2); }
+    .product-peanuts { background: rgba(249,115,22,0.12); color: #fdba74; border: 1px solid rgba(249,115,22,0.2); }
+    .product-tobacco { background: rgba(139,92,246,0.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.2); }
+    .contact-link {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: opacity 0.2s;
+    }
+    .contact-link:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+    .unverified {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 11px;
+    }
+    .capacity {
+      font-weight: 600;
+      color: var(--accent-cyan);
+      font-size: 12px;
+    }
+    .tags-cell {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(148,163,184,0.1);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* === DETAIL MODAL === */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      max-width: 720px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      background: var(--bg-secondary);
+      z-index: 10;
+    }
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .modal-close {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .modal-close:hover {
+      background: rgba(244,63,94,0.1);
+      border-color: var(--accent-rose);
+      color: var(--accent-rose);
+    }
+    .modal-body {
+      padding: 24px 28px;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .detail-item {
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    .detail-item.full {
+      grid-column: 1 / -1;
+    }
+    .detail-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+    .detail-value a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+    .detail-value a:hover {
+      text-decoration: underline;
+    }
+    .outreach-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(59,130,246,0.05);
+      border: 1px solid rgba(59,130,246,0.15);
+      border-radius: var(--radius);
+    }
+    .outreach-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--accent-blue);
+    }
+    .outreach-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      .header { padding: 16px; }
+      .stats-bar, .filters-section, .table-section { padding-left: 16px; padding-right: 16px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .detail-grid { grid-template-columns: 1fr; }
+      .brand h1 { font-size: 18px; }
+      .stat-value { font-size: 24px; }
+    }
+
+    /* === SCROLLBAR === */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* === PAGINATION === */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .page-btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .page-btn:hover, .page-btn.active {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(59,130,246,0.08);
+    }
+    .page-btn.active {
+      background: rgba(59,130,246,0.15);
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-info {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 0 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">JG</div>
+        <div>
+          <h1>Jivanta Global Lead Intelligence</h1>
+          <p>B2B Buyer Database • Export-Import</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="exportCSV()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn btn-primary" onclick="exportCSV()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Full Report
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar" id="statsBar"></div>
+
+  <!-- FILTERS -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search companies, contacts, countries, products..." oninput="applyFilters()">
+      </div>
+      <select class="filter-select" id="filterProduct" onchange="applyFilters()">
+        <option value="">All Products</option>
+        <option value="Biomass Pellets">Biomass Pellets</option>
+        <option value="Maize">Maize (All)</option>
+        <option value="Peanuts">Peanuts</option>
+        <option value="Tobacco">Tobacco</option>
+      </select>
+      <select class="filter-select" id="filterCountry" onchange="applyFilters()">
+        <option value="">All Regions</option>
+        <option value="India">🇮🇳 India</option>
+        <option value="International">🌍 International</option>
+      </select>
+      <select class="filter-select" id="filterConfidence" onchange="applyFilters()">
+        <option value="">All Confidence</option>
+        <option value="High">✅ High</option>
+        <option value="Medium">⚡ Medium</option>
+        <option value="Low">⚠️ Low</option>
+      </select>
+      <select class="filter-select" id="filterSize" onchange="applyFilters()">
+        <option value="">All Company Sizes</option>
+        <option value="SME">⚡ SME Only (Quick Connect)</option>
+        <option value="Enterprise">🏢 Enterprise Only</option>
+      </select>
+    </div>
+    <div class="filter-pills" id="filterPills"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="results-count" id="resultsCount">Loading...</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" onclick="selectAll()" style="padding:8px 14px;font-size:12px;">Select All</button>
+        <button class="btn btn-outline" onclick="exportSelected()" style="padding:8px 14px;font-size:12px;">Export Selected</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th>
+              <th onclick="sortBy('companyName')">Company ↕</th>
+              <th onclick="sortBy('country')">Region ↕</th>
+              <th onclick="sortBy('productInterest')">Product ↕</th>
+              <th onclick="sortBy('buyerType')">Type ↕</th>
+              <th>Contact</th>
+              <th>Email</th>
+              <th onclick="sortBy('estimatedBuyingCapacity')">Capacity ↕</th>
+              <th onclick="sortBy('confidenceScore')">Score ↕</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Company Details</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="leads_data.js"></script>
+  <script>
+    // State
+    let filteredLeads = [...LEADS_DATA.leads];
+    let selectedIds = new Set();
+    let sortField = 'confidenceScore';
+    let sortDir = -1;
+
+    const COUNTRY_FLAGS = {
+      'India': '🇮🇳', 'UAE': '🇦🇪', 'South Korea': '🇰🇷', 'Japan': '🇯🇵',
+      'Netherlands': '🇳🇱', 'Germany': '🇩🇪', 'Vietnam': '🇻🇳', 'Bangladesh': '🇧🇩',
+      'Sri Lanka': '🇱🇰', 'Indonesia': '🇮🇩', 'Sweden': '🇸🇪',
+      'Netherlands / Germany': '🇪🇺', 'Global (USA HQ)': '🌍'
+    };
+
+    function getProductClass(product) {
+      if (product.includes('Biomass')) return 'product-biomass';
+      if (product.includes('Maize')) return 'product-maize';
+      if (product.includes('Peanut') || product.includes('peanut')) return 'product-peanuts';
+      if (product.includes('Tobacco') || product.includes('tobacco')) return 'product-tobacco';
+      return '';
+    }
+
+    function getFlag(country) {
+      for (const [k, v] of Object.entries(COUNTRY_FLAGS)) {
+        if (country.includes(k)) return v;
+      }
+      return '🌐';
+    }
+
+    function renderStats() {
+      const leads = LEADS_DATA.leads;
+      const high = leads.filter(l => l.confidenceScore === 'High').length;
+      const smeLeads = leads.filter(l => l.tags.includes('SME')).length;
+      const quickConnect = leads.filter(l => l.tags.includes('quick-connect')).length;
+      const india = leads.filter(l => l.country === 'India').length;
+      const intl = leads.filter(l => l.country !== 'India').length;
+      const products = new Set(leads.map(l => {
+        if (l.productInterest.includes('Biomass')) return 'Biomass';
+        if (l.productInterest.includes('Maize')) return 'Maize';
+        if (l.productInterest.includes('Peanut') || l.productInterest.includes('peanut')) return 'Peanuts';
+        return 'Tobacco';
+      }));
+      const withEmail = leads.filter(l => l.email && !l.email.includes('UNVERIFIED') && !l.email.includes('use website') && !l.email.includes('Via ')).length;
+
+      const stats = [
+        { label: 'Total Leads', value: leads.length, sub: 'verified companies' },
+        { label: 'SME / Quick Access', value: smeLeads, sub: `${quickConnect} with direct phone` },
+        { label: 'High Confidence', value: high, sub: `${Math.round(high/leads.length*100)}% of total` },
+        { label: 'With Email', value: withEmail, sub: 'direct contact' },
+        { label: 'India Leads', value: india, sub: 'domestic buyers' },
+        { label: 'International', value: intl, sub: `${new Set(leads.filter(l => l.country !== 'India').map(l => l.country)).size} countries` }
+      ];
+
+      document.getElementById('statsBar').innerHTML = stats.map(s => `
+        <div class="stat-card">
+          <div class="stat-label">${s.label}</div>
+          <div class="stat-value">${s.value}</div>
+          <div class="stat-sub">${s.sub}</div>
+        </div>
+      `).join('');
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const product = document.getElementById('filterProduct').value;
+      const country = document.getElementById('filterCountry').value;
+      const confidence = document.getElementById('filterConfidence').value;
+      const size = document.getElementById('filterSize').value;
+
+      filteredLeads = LEADS_DATA.leads.filter(lead => {
+        if (search) {
+          const searchStr = [lead.companyName, lead.country, lead.state, lead.productInterest, lead.buyerType, lead.contactPerson, lead.email, lead.notes, ...lead.tags].join(' ').toLowerCase();
+          if (!searchStr.includes(search)) return false;
+        }
+        if (product && !lead.productInterest.toLowerCase().includes(product.toLowerCase())) return false;
+        if (country === 'India' && lead.country !== 'India') return false;
+        if (country === 'International' && lead.country === 'India') return false;
+        if (confidence && lead.confidenceScore !== confidence) return false;
+        if (size === 'SME' && !lead.tags.includes('SME')) return false;
+        if (size === 'Enterprise' && lead.tags.includes('SME')) return false;
+        return true;
+      });
+
+      sortLeads();
+      renderTable();
+      updateResultsCount();
+      renderFilterPills();
+    }
+
+    function sortBy(field) {
+      if (sortField === field) sortDir *= -1;
+      else { sortField = field; sortDir = 1; }
+      sortLeads();
+      renderTable();
+    }
+
+    function sortLeads() {
+      const scoreOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+      filteredLeads.sort((a, b) => {
+        let va = a[sortField] || '';
+        let vb = b[sortField] || '';
+        if (sortField === 'confidenceScore') {
+          va = scoreOrder[va] || 0;
+          vb = scoreOrder[vb] || 0;
+        }
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        if (va < vb) return -1 * sortDir;
+        if (va > vb) return 1 * sortDir;
+        return 0;
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('leadsTable');
+      tbody.innerHTML = filteredLeads.map(lead => {
+        const flag = getFlag(lead.country);
+        const productClass = getProductClass(lead.productInterest);
+        const productLabel = lead.productInterest.replace('(Poultry Feed)', '').replace('(Breweries)', '').replace('(Distilleries)', '').replace('(Bulk)', '').replace('(Motihari/Rustica/Black Leaf)', '').replace('(primarily FCV, potential for other varieties)', '').replace('(Motihari/Rustica)', '').replace('(Motihari/Dark varieties)', '').replace('(Raw Leaf)', '').replace('(Raw Leaf Import)', '').replace('(All types including dark/black)', '').trim();
+        const emailDisplay = (!lead.email || lead.email.includes('UNVERIFIED') || lead.email.includes('use website'))
+          ? '<span class="unverified">Unverified</span>'
+          : `<a class="contact-link" href="mailto:${lead.email}">${lead.email}</a>`;
+        const phoneDisplay = (!lead.phone || lead.phone.includes('UNVERIFIED'))
+          ? '<span class="unverified">—</span>'
+          : lead.phone;
+        const checked = selectedIds.has(lead.id) ? 'checked' : '';
+
+        return `<tr onclick="openModal('${lead.id}')">
+          <td onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelect('${lead.id}', this.checked)"></td>
+          <td><div class="company-name"><span class="country-flag">${flag}</span>${lead.companyName}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px;padding-left:28px;">${lead.state || ''}</div></td>
+          <td>${lead.country}</td>
+          <td><span class="product-badge ${productClass}">${productLabel}</span></td>
+          <td style="font-size:12px;">${lead.buyerType}</td>
+          <td><div style="font-size:12px;font-weight:600;color:var(--text-primary);">${lead.contactPerson !== 'UNVERIFIED' ? lead.contactPerson : '<span class="unverified">—</span>'}</div><div style="font-size:11px;color:var(--text-muted);">${phoneDisplay}</div></td>
+          <td>${emailDisplay}</td>
+          <td><span class="capacity">${lead.estimatedBuyingCapacity !== 'UNVERIFIED' ? lead.estimatedBuyingCapacity : '—'}</span></td>
+          <td><span class="badge badge-${lead.confidenceScore.toLowerCase()}">${lead.confidenceScore}</span></td>
+          <td>
+            ${lead.website && lead.website !== 'UNVERIFIED' ? `<a class="contact-link" href="${lead.website}" target="_blank" onclick="event.stopPropagation()">🌐</a>` : ''}
+            ${lead.linkedin && lead.linkedin !== 'UNVERIFIED' ? `<a class="contact-link" href="${lead.linkedin}" target="_blank" onclick="event.stopPropagation()">in</a>` : ''}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updateResultsCount() {
+      document.getElementById('resultsCount').innerHTML = `Showing <strong>${filteredLeads.length}</strong> of <strong>${LEADS_DATA.leads.length}</strong> leads`;
+    }
+
+    function renderFilterPills() {
+      const pills = document.getElementById('filterPills');
+      const tags = new Set();
+      filteredLeads.forEach(l => l.tags.forEach(t => tags.add(t)));
+      const topTags = [...tags].slice(0, 15);
+      pills.innerHTML = topTags.map(t => `<span class="pill" onclick="filterByTag('${t}')">${t}</span>`).join('');
+    }
+
+    function filterByTag(tag) {
+      document.getElementById('searchInput').value = tag;
+      applyFilters();
+    }
+
+    function toggleSelect(id, checked) {
+      if (checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+    }
+
+    function toggleAll(checkbox) {
+      filteredLeads.forEach(l => {
+        if (checkbox.checked) selectedIds.add(l.id);
+        else selectedIds.delete(l.id);
+      });
+      renderTable();
+    }
+
+    function selectAll() {
+      filteredLeads.forEach(l => selectedIds.add(l.id));
+      document.getElementById('checkAll').checked = true;
+      renderTable();
+    }
+
+    function openModal(id) {
+      const lead = LEADS_DATA.leads.find(l => l.id === id);
+      if (!lead) return;
+
+      document.getElementById('modalTitle').textContent = lead.companyName;
+
+      // Determine product for outreach
+      let outreachKey = 'biomass';
+      if (lead.productInterest.includes('Maize')) outreachKey = 'maize';
+      else if (lead.productInterest.toLowerCase().includes('peanut')) outreachKey = 'peanuts';
+      else if (lead.productInterest.toLowerCase().includes('tobacco')) outreachKey = 'tobacco';
+
+      const template = OUTREACH_TEMPLATES[outreachKey];
+      const whatsappMsg = template?.whatsapp?.replace(/\[Company\]/g, lead.companyName).replace(/\[Name\]/g, lead.contactPerson !== 'UNVERIFIED' ? lead.contactPerson : 'Sir/Madam') || '';
+      const emailMsg = template?.email?.body?.replace(/\[Company\]/g, lead.companyName).replace(/\[Name\]/g, lead.contactPerson !== 'UNVERIFIED' ? lead.contactPerson : 'Sir/Madam') || '';
+
+      const makeLink = (url, label) => url && url !== 'UNVERIFIED' && !url.includes('use website')
+        ? `<a href="${url}" target="_blank">${label || url}</a>` : '<span class="unverified">Unverified</span>';
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Country / Region</div>
+            <div class="detail-value">${getFlag(lead.country)} ${lead.country} — ${lead.state || 'N/A'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Confidence</div>
+            <div class="detail-value"><span class="badge badge-${lead.confidenceScore.toLowerCase()}">${lead.confidenceScore}</span></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Product Interest</div>
+            <div class="detail-value"><span class="product-badge ${getProductClass(lead.productInterest)}">${lead.productInterest}</span></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Buyer Type</div>
+            <div class="detail-value">${lead.buyerType}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Contact Person</div>
+            <div class="detail-value">${lead.contactPerson || 'UNVERIFIED'} ${lead.designation ? '— ' + lead.designation : ''}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value">${lead.phone && lead.phone !== 'UNVERIFIED' ? lead.phone : '<span class="unverified">Unverified</span>'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">${lead.email && !lead.email.includes('UNVERIFIED') && !lead.email.includes('use website') ? `<a href="mailto:${lead.email}">${lead.email}</a>` : '<span class="unverified">Unverified</span>'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">WhatsApp</div>
+            <div class="detail-value">${lead.whatsapp && lead.whatsapp !== 'UNVERIFIED' && lead.whatsapp !== 'N/A' ? `<a href="https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, '')}">${lead.whatsapp}</a>` : '<span class="unverified">Unverified</span>'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Website</div>
+            <div class="detail-value">${makeLink(lead.website, lead.website)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">LinkedIn</div>
+            <div class="detail-value">${makeLink(lead.linkedin, 'View Profile')}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Est. Buying Capacity</div>
+            <div class="detail-value"><span class="capacity">${lead.estimatedBuyingCapacity || 'UNVERIFIED'}</span></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Last Verified</div>
+            <div class="detail-value">${lead.lastVerified}</div>
+          </div>
+          <div class="detail-item full">
+            <div class="detail-label">Import/Export Evidence</div>
+            <div class="detail-value">${lead.importExportEvidence}</div>
+          </div>
+          <div class="detail-item full">
+            <div class="detail-label">Notes</div>
+            <div class="detail-value">${lead.notes}</div>
+          </div>
+          <div class="detail-item full">
+            <div class="detail-label">Tags</div>
+            <div class="detail-value"><div class="tags-cell">${lead.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>
+          </div>
+          <div class="detail-item full">
+            <div class="detail-label">Sources</div>
+            <div class="detail-value">${lead.sourceLinks.map(s => s.startsWith('http') ? `<a href="${s}" target="_blank">${s}</a>` : s).join('<br>')}</div>
+          </div>
+        </div>
+
+        <div class="outreach-section">
+          <h3>📱 WhatsApp Intro</h3>
+          <div class="outreach-text" id="whatsappText">${whatsappMsg}<button class="copy-btn" onclick="event.stopPropagation();copyText('whatsappText')">Copy</button></div>
+        </div>
+        <div class="outreach-section" style="margin-top:12px;">
+          <h3>📧 Cold Email</h3>
+          <div class="outreach-text" id="emailText">${emailMsg}<button class="copy-btn" onclick="event.stopPropagation();copyText('emailText')">Copy</button></div>
+        </div>
+      `;
+
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    function copyText(elementId) {
+      const el = document.getElementById(elementId);
+      const text = el.innerText.replace('Copy', '').trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = el.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 1500);
+      });
+    }
+
+    function exportCSV() {
+      const leads = filteredLeads;
+      const headers = ['ID','Company Name','Country','State','Product Interest','Buyer Type','Contact Person','Designation','Phone','WhatsApp','Email','Website','LinkedIn','Import/Export Evidence','Estimated Buying Capacity','Confidence Score','Tags','Notes','Last Verified','Sources'];
+      const rows = leads.map(l => [
+        l.id, l.companyName, l.country, l.state, l.productInterest, l.buyerType,
+        l.contactPerson, l.designation, l.phone, l.whatsapp, l.email, l.website,
+        l.linkedin, `"${(l.importExportEvidence||'').replace(/"/g,'""')}"`,
+        l.estimatedBuyingCapacity, l.confidenceScore, `"${l.tags.join(', ')}"`,
+        `"${(l.notes||'').replace(/"/g,'""')}"`, l.lastVerified,
+        `"${l.sourceLinks.join(', ')}"`
+      ]);
+      let csv = headers.join(',') + '\n';
+      rows.forEach(r => csv += r.join(',') + '\n');
+
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Jivanta_Global_Leads_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportSelected() {
+      if (selectedIds.size === 0) {
+        alert('No leads selected. Use checkboxes to select leads.');
+        return;
+      }
+      const originalFiltered = [...filteredLeads];
+      filteredLeads = LEADS_DATA.leads.filter(l => selectedIds.has(l.id));
+      exportCSV();
+      filteredLeads = originalFiltered;
+    }
+
+    // Keyboard shortcut
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Init
+    renderStats();
+    sortLeads();
+    renderTable();
+    updateResultsCount();
+    renderFilterPills();
+  </script>
+</body>
+</html>
