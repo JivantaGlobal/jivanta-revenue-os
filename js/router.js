@@ -404,7 +404,7 @@ export const Router = {
    * @param {string|null} previousRoute - The previous route path pattern.
    * @private
    */
-  _resolve(path, silent, previousRoute) {
+  async _resolve(path, silent, previousRoute) {
     const match = this._match(path);
 
     // ── 404 ──
