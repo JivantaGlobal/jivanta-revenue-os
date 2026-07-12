@@ -86,24 +86,26 @@ Router.register('/login', {
             </button>
           </form>
 
-          <div class="login-divider" style="text-align: center; margin: var(--space-5) 0; position: relative;">
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 0;" />
-            <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0c101b; padding: 0 10px; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Or Quick Login for Testing</span>
-          </div>
+          <div id="demoSection" style="display: none;">
+            <div class="login-divider" style="text-align: center; margin: var(--space-5) 0; position: relative;">
+              <hr style="border: 0; border-top: 1px solid var(--border); margin: 0;" />
+              <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0c101b; padding: 0 10px; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Or Quick Login for Testing</span>
+            </div>
 
-          <div class="demo-accounts-grid">
-            ${DEMO_USERS.map(user => `
-              <div class="demo-account-card" data-user-idx="${DEMO_USERS.indexOf(user)}" style="cursor: pointer;">
-                <div class="demo-avatar">${getIconSvg(user.icon)}</div>
-                <div class="demo-info">
-                  <div class="demo-name">${user.name}</div>
-                  <div class="demo-role">${user.roleName}</div>
-                  <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">
-                    ${user.email} <br/> Pass: <code>${user.password}</code>
+            <div class="demo-accounts-grid">
+              ${DEMO_USERS.map(user => `
+                <div class="demo-account-card" data-user-idx="${DEMO_USERS.indexOf(user)}" style="cursor: pointer;">
+                  <div class="demo-avatar">${getIconSvg(user.icon)}</div>
+                  <div class="demo-info">
+                    <div class="demo-name">${user.name}</div>
+                    <div class="demo-role">${user.roleName}</div>
+                    <div style="font-size: 9px; color: var(--text-muted); margin-top: 2px;">
+                      ${user.email} <br/> Pass: <code>${user.password}</code>
+                    </div>
                   </div>
                 </div>
-              </div>
-            `).join('')}
+              `).join('')}
+            </div>
           </div>
         </div>
       </div>
@@ -198,7 +200,20 @@ document.addEventListener('submit', async (e) => {
   }
 });
 
+let logoClicks = 0;
 document.addEventListener('click', async (e) => {
+  // Handle secret clicks on brand logo to reveal quick login
+  if (e.target.closest('.login-logo-glow') || e.target.closest('.logo-svg')) {
+    logoClicks++;
+    if (logoClicks === 5) {
+      const demoSection = document.getElementById('demoSection');
+      if (demoSection) {
+        demoSection.style.display = 'block';
+        renderToast('Developer Quick Login panel unlocked!', 'info');
+      }
+    }
+  }
+
   // Handle click on demo account card
   const demoCard = e.target.closest('.demo-account-card');
   if (demoCard) {

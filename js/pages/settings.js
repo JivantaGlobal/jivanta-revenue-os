@@ -258,7 +258,36 @@ Router.register('/settings', {
         `;
       }).join('');
 
+      let demoCredentialsHtml = '';
+      if (currentUser.role === 'super_admin') {
+        demoCredentialsHtml = `
+          <div class="card" style="margin-bottom: var(--space-5); background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2);">
+            <h4 style="margin: 0 0 var(--space-2) 0; font-size: var(--text-sm); display: flex; align-items: center; gap: 6px; color: var(--color-primary);">
+              🔑 Default Demo Accounts & Passwords (Visible to Super Admin only)
+            </h4>
+            <div class="grid grid-3-col" style="gap: var(--space-3); font-size: var(--text-xs); color: var(--text-muted);">
+              <div style="background: rgba(0,0,0,0.2); padding: var(--space-2); border-radius: var(--radius-sm);">
+                <strong>Super Admin:</strong><br/>
+                Email: <code>admin@jivantaglobal.com</code><br/>
+                Pass: <code>Admin@123</code>
+              </div>
+              <div style="background: rgba(0,0,0,0.2); padding: var(--space-2); border-radius: var(--radius-sm);">
+                <strong>Sales Manager:</strong><br/>
+                Email: <code>manager@jivantaglobal.com</code><br/>
+                Pass: <code>Manager@123</code>
+              </div>
+              <div style="background: rgba(0,0,0,0.2); padding: var(--space-2); border-radius: var(--radius-sm);">
+                <strong>Sales Executive:</strong><br/>
+                Email: <code>employee@jivantaglobal.com</code><br/>
+                Pass: <code>Employee@123</code>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       contentHtml = `
+        ${demoCredentialsHtml}
         <div class="card" style="padding: 0; overflow: hidden; margin-bottom: var(--space-5);">
           <div class="card-header" style="padding: var(--space-4); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">Authorized System Users</h3>
