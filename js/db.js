@@ -5,7 +5,7 @@
  * index-based queries, and field-level full-text search across all stores.
  *
  * @module DB
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 /** @type {string} Database name */
@@ -22,9 +22,6 @@ let firestoreDb = null;
 let isFirebaseEnabled = false;
 let firebaseConfig = null;
 let unsubscribes = [];
-
-// Dynamic Firebase Module Pointers
-let _doc, _setDoc, _deleteDoc, _collection, _onSnapshot, _getDocs, _writeBatch;
 
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyBkKf3fjufq6BmpKT-Y0jXPsaRr-Nvu-SQ",
@@ -253,33 +250,22 @@ export const DB = {
    */
   async initFirebase() {
     try {
-      // Dynamic imports from Firebase CDN (fails gracefully if blocked by network/firewall)
-      const firebaseAppMod = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
-      const firebaseFirestoreMod = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
-
-      const { initializeApp, getApps, getApp } = firebaseAppMod;
-      const { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot, getDocs, writeBatch } = firebaseFirestoreMod;
-
-      // Assign module-level functions
-      _doc = doc;
-      _setDoc = setDoc;
-      _deleteDoc = deleteDoc;
-      _collection = collection;
-      _onSnapshot = onSnapshot;
-      _getDocs = getDocs;
-      _writeBatch = writeBatch;
+      const firebase = window.firebase;
+      if (!firebase) {
+        throw new Error('Firebase global SDK object not found on window.');
+      }
 
       const savedConfig = localStorage.getItem('jivanta_firebase_config');
       firebaseConfig = savedConfig ? JSON.parse(savedConfig) : DEFAULT_FIREBASE_CONFIG;
 
       let app;
-      if (getApps().length === 0) {
-        app = initializeApp(firebaseConfig);
+      if (firebase.apps.length === 0) {
+        app = firebase.initializeApp(firebaseConfig);
       } else {
-        app = getApp();
+        app = firebase.app();
       }
       
-      firestoreDb = getFirestore(app);
+      firestoreDb = firebase.firestore(app);
       isFirebaseEnabled = true;
       console.info(`[Firebase] Syncing live to project: ${firebaseConfig.projectId}`);
 
@@ -289,8 +275,8 @@ export const DB = {
       // Check if Firestore is completely empty (new cloud database setup)
       setTimeout(async () => {
         try {
-          const leadsRef = _collection(firestoreDb, 'jivanta_crm_leads');
-          const leadsSnap = await _getDocs(leadsRef);
+          const leadsRef = firestoreDb.collection('jivanta_crm_leads');
+          const leadsSnap = await leadsRef.limit(1).get();
           if (leadsSnap.empty) {
             console.info('[Firebase] Cloud database is empty. Force-uploading local backup...');
             await this.forcePushLocalToCloud();
@@ -320,9 +306,9 @@ export const DB = {
     const storesToSync = ['leads', 'tasks', 'calls', 'activities', 'users', 'quotations', 'documents', 'settings'];
     
     storesToSync.forEach(storeName => {
-      const colRef = _collection(firestoreDb, `jivanta_crm_${storeName}`);
+      const colRef = firestoreDb.collection(`jivanta_crm_${storeName}`);
       
-      const unsub = _onSnapshot(colRef, async (snapshot) => {
+      const unsub = colRef.onSnapshot(async (snapshot) => {
         for (const change of snapshot.docChanges()) {
           const record = change.doc.data();
           const docId = change.doc.id;
@@ -383,18 +369,18 @@ export const DB = {
    * Force pushes all local database entries to the Cloud Database.
    */
   async forcePushLocalToCloud() {
-    if (!firestoreDb || !_writeBatch) return;
+    if (!firestoreDb) return;
     console.info('[Firebase] Pushing all local records to Firestore...');
     const storesToSync = ['leads', 'tasks', 'calls', 'activities', 'users', 'quotations', 'documents', 'settings'];
     
     for (const storeName of storesToSync) {
       const records = await this.getAll(storeName);
-      const batch = _writeBatch(firestoreDb);
+      const batch = firestoreDb.batch();
       
       records.forEach(record => {
         const docId = record.id || record.key;
         if (docId) {
-          const docRef = _doc(firestoreDb, `jivanta_crm_${storeName}`, docId);
+          const docRef = firestoreDb.collection(`jivanta_crm_${storeName}`).doc(docId);
           batch.set(docRef, record);
         }
       });
@@ -410,13 +396,13 @@ export const DB = {
    * Force pulls all records from the Cloud Database, replacing local contents.
    */
   async forcePullCloudToLocal() {
-    if (!firestoreDb || !_collection || !_getDocs) return;
+    if (!firestoreDb) return;
     console.info('[Firebase] Pulling all records from Firestore...');
     const storesToSync = ['leads', 'tasks', 'calls', 'activities', 'users', 'quotations', 'documents', 'settings'];
     
     for (const storeName of storesToSync) {
-      const colRef = _collection(firestoreDb, `jivanta_crm_${storeName}`);
-      const snap = await _getDocs(colRef);
+      const colRef = firestoreDb.collection(`jivanta_crm_${storeName}`);
+      const snap = await colRef.get();
       
       // Clear local IndexedDB table
       await this.clear(storeName);
@@ -516,10 +502,10 @@ export const DB = {
     await promisifyTransaction(tx);
 
     // Sync to Firebase Firestore
-    if (isFirebaseEnabled && firestoreDb && _setDoc) {
+    if (isFirebaseEnabled && firestoreDb) {
       try {
-        const docRef = _doc(firestoreDb, `jivanta_crm_${storeName}`, String(key));
-        await _setDoc(docRef, recordToSave);
+        const docRef = firestoreDb.collection(`jivanta_crm_${storeName}`).doc(String(key));
+        await docRef.set(recordToSave);
       } catch (err) {
         console.warn(`[Firebase] Live Sync push failed for ${storeName}/${key}:`, err);
       }
@@ -540,10 +526,10 @@ export const DB = {
     await promisifyTransaction(tx);
 
     // Sync deletion to Firebase
-    if (isFirebaseEnabled && firestoreDb && _deleteDoc) {
+    if (isFirebaseEnabled && firestoreDb) {
       try {
-        const docRef = _doc(firestoreDb, `jivanta_crm_${storeName}`, String(id));
-        await _deleteDoc(docRef);
+        const docRef = firestoreDb.collection(`jivanta_crm_${storeName}`).doc(String(id));
+        await docRef.delete();
       } catch (err) {
         console.warn(`[Firebase] Live Sync delete failed for ${storeName}/${id}:`, err);
       }
@@ -562,11 +548,11 @@ export const DB = {
     await promisifyTransaction(tx);
 
     // Sync clear to Firebase
-    if (isFirebaseEnabled && firestoreDb && _deleteDoc) {
+    if (isFirebaseEnabled && firestoreDb) {
       try {
-        const snap = await _getDocs(_collection(firestoreDb, `jivanta_crm_${storeName}`));
+        const snap = await firestoreDb.collection(`jivanta_crm_${storeName}`).get();
         for (const docSnap of snap.docs) {
-          await _deleteDoc(docSnap.ref);
+          await docSnap.ref.delete();
         }
       } catch (err) {
         console.warn(`[Firebase] Live Sync clear failed for ${storeName}:`, err);
@@ -685,12 +671,12 @@ export const DB = {
     await promisifyTransaction(tx);
 
     // Sync batch to Firebase
-    if (isFirebaseEnabled && firestoreDb && _writeBatch) {
+    if (isFirebaseEnabled && firestoreDb) {
       try {
-        const batch = _writeBatch(firestoreDb);
+        const batch = firestoreDb.batch();
         savedRecords.forEach((record, index) => {
           const docId = String(keys[index]);
-          const docRef = _doc(firestoreDb, `jivanta_crm_${storeName}`, docId);
+          const docRef = firestoreDb.collection(`jivanta_crm_${storeName}`).doc(docId);
           batch.set(docRef, record);
         });
         await batch.commit();
@@ -721,11 +707,11 @@ export const DB = {
     await promisifyTransaction(tx);
 
     // Sync batch deletion to Firebase
-    if (isFirebaseEnabled && firestoreDb && _writeBatch) {
+    if (isFirebaseEnabled && firestoreDb) {
       try {
-        const batch = _writeBatch(firestoreDb);
+        const batch = firestoreDb.batch();
         ids.forEach(id => {
-          const docRef = _doc(firestoreDb, `jivanta_crm_${storeName}`, String(id));
+          const docRef = firestoreDb.collection(`jivanta_crm_${storeName}`).doc(String(id));
           batch.delete(docRef);
         });
         await batch.commit();
