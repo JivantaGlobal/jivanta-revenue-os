@@ -23,6 +23,20 @@ let isFirebaseEnabled = false;
 let firebaseConfig = null;
 let unsubscribes = [];
 
+// In-Memory Database Fallback (for locked or private browser sessions where IndexedDB hangs/fails)
+let useMemoryStorage = false;
+const memoryDb = {
+  leads: [],
+  activities: [],
+  tasks: [],
+  calls: [],
+  quotations: [],
+  documents: [],
+  users: [],
+  notifications: [],
+  settings: []
+};
+
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyBkKf3fjufq6BmpKT-Y0jXPsaRr-Nvu-SQ",
   authDomain: "abs-hrm-cloud.firebaseapp.com",
@@ -182,10 +196,21 @@ export const DB = {
    */
   init() {
     if (typeof indexedDB === 'undefined') {
-      throw new Error('[DB] IndexedDB is not supported in this environment.');
+      console.warn('[DB] IndexedDB not supported. Falling back to in-memory database.');
+      useMemoryStorage = true;
+      this.initFirebase();
+      return Promise.resolve(null);
     }
 
     return new Promise((resolve, reject) => {
+      // 3-second safety timeout to prevent page hangs on browser IndexedDB locks
+      const safetyTimeout = setTimeout(() => {
+        console.warn('[DB] IndexedDB initialization timed out after 3 seconds. Falling back to in-memory database.');
+        useMemoryStorage = true;
+        this.initFirebase();
+        resolve(null);
+      }, 3000);
+
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onupgradeneeded = (event) => {
@@ -212,6 +237,7 @@ export const DB = {
       };
 
       request.onsuccess = (event) => {
+        clearTimeout(safetyTimeout);
         dbInstance = event.target.result;
 
         dbInstance.onclose = () => {
@@ -220,8 +246,10 @@ export const DB = {
         };
 
         dbInstance.onversionchange = () => {
-          dbInstance.close();
-          dbInstance = null;
+          if (dbInstance) {
+            dbInstance.close();
+            dbInstance = null;
+          }
           console.warn('[DB] Database version changed in another tab. Connection closed.');
         };
 
@@ -234,13 +262,19 @@ export const DB = {
       };
 
       request.onerror = (event) => {
-        console.error('[DB] Failed to open database:', event.target.error);
-        reject(new Error(`[DB] Failed to open database: ${event.target.error?.message ?? 'Unknown error'}`));
+        clearTimeout(safetyTimeout);
+        console.warn('[DB] Failed to open IndexedDB. Falling back to in-memory database.', event.target.error);
+        useMemoryStorage = true;
+        this.initFirebase();
+        resolve(null);
       };
 
       request.onblocked = () => {
-        console.warn('[DB] Database open blocked — close other tabs.');
-        reject(new Error('[DB] Database open blocked by another connection.'));
+        clearTimeout(safetyTimeout);
+        console.warn('[DB] IndexedDB open blocked. Falling back to in-memory database.');
+        useMemoryStorage = true;
+        this.initFirebase();
+        resolve(null);
       };
     });
   },
@@ -421,6 +455,7 @@ export const DB = {
    * Returns the active database connection.
    */
   async _getDB() {
+    if (useMemoryStorage) return null;
     if (!dbInstance) {
       return this.init();
     }
@@ -432,6 +467,9 @@ export const DB = {
    */
   async getAll(storeName) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      return Promise.resolve([...memoryDb[storeName]]);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -443,6 +481,10 @@ export const DB = {
    */
   async get(storeName, id) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      return Promise.resolve(memoryDb[storeName].find(r => r[keyField] === id) || null);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -452,6 +494,10 @@ export const DB = {
   // Helper local-only get bypass
   async getLocal(storeName, id) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      return Promise.resolve(memoryDb[storeName].find(r => r[keyField] === id) || null);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -461,6 +507,16 @@ export const DB = {
   // Helper local-only write bypass
   async putLocal(storeName, record) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      const idx = memoryDb[storeName].findIndex(r => r[keyField] === record[keyField]);
+      if (idx !== -1) {
+        memoryDb[storeName][idx] = record;
+      } else {
+        memoryDb[storeName].push(record);
+      }
+      return Promise.resolve();
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
@@ -471,6 +527,14 @@ export const DB = {
   // Helper local-only delete bypass
   async deleteLocal(storeName, id) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      const idx = memoryDb[storeName].findIndex(r => r[keyField] === id);
+      if (idx !== -1) {
+        memoryDb[storeName].splice(idx, 1);
+      }
+      return Promise.resolve();
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readwrite');
     const store = tx.objectStore(storeName);
@@ -486,6 +550,12 @@ export const DB = {
     validateStoreName(storeName);
 
     const recordToSave = { ...record };
+    const keyField = storeName === 'settings' ? 'key' : 'id';
+    
+    if (!recordToSave[keyField]) {
+      recordToSave[keyField] = generateId(storeName.toUpperCase().slice(0, 3));
+    }
+    
     if (storeName !== 'settings') {
       const now = new Date().toISOString();
       if (!recordToSave.createdAt) {
@@ -494,12 +564,23 @@ export const DB = {
       recordToSave.updatedAt = now;
     }
 
-    // Save locally
-    const db = await this._getDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    const key = await promisifyRequest(store.put(recordToSave));
-    await promisifyTransaction(tx);
+    const key = recordToSave[keyField];
+
+    if (useMemoryStorage) {
+      const idx = memoryDb[storeName].findIndex(r => r[keyField] === key);
+      if (idx !== -1) {
+        memoryDb[storeName][idx] = recordToSave;
+      } else {
+        memoryDb[storeName].push(recordToSave);
+      }
+    } else {
+      // Save locally
+      const db = await this._getDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      await promisifyRequest(store.put(recordToSave));
+      await promisifyTransaction(tx);
+    }
 
     // Sync to Firebase Firestore
     if (isFirebaseEnabled && firestoreDb) {
@@ -519,11 +600,20 @@ export const DB = {
    */
   async delete(storeName, id) {
     validateStoreName(storeName);
-    const db = await this._getDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    await promisifyRequest(store.delete(id));
-    await promisifyTransaction(tx);
+    
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      const idx = memoryDb[storeName].findIndex(r => r[keyField] === id);
+      if (idx !== -1) {
+        memoryDb[storeName].splice(idx, 1);
+      }
+    } else {
+      const db = await this._getDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      await promisifyRequest(store.delete(id));
+      await promisifyTransaction(tx);
+    }
 
     // Sync deletion to Firebase
     if (isFirebaseEnabled && firestoreDb) {
@@ -541,11 +631,16 @@ export const DB = {
    */
   async clear(storeName) {
     validateStoreName(storeName);
-    const db = await this._getDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    await promisifyRequest(store.clear());
-    await promisifyTransaction(tx);
+    
+    if (useMemoryStorage) {
+      memoryDb[storeName] = [];
+    } else {
+      const db = await this._getDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      await promisifyRequest(store.clear());
+      await promisifyTransaction(tx);
+    }
 
     // Sync clear to Firebase
     if (isFirebaseEnabled && firestoreDb) {
@@ -565,6 +660,9 @@ export const DB = {
    */
   async count(storeName) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      return Promise.resolve(memoryDb[storeName].length);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -576,6 +674,11 @@ export const DB = {
    */
   async query(storeName, indexName, value) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      // Basic index simulation on arrays
+      const filtered = memoryDb[storeName].filter(r => r[indexName] === value);
+      return Promise.resolve(filtered);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -601,6 +704,14 @@ export const DB = {
     const normalizedTerm = searchTerm.toLowerCase().trim();
     if (normalizedTerm.length === 0) {
       return this.getAll(storeName);
+    }
+
+    if (useMemoryStorage) {
+      const filtered = memoryDb[storeName].filter(r => {
+        const val = r[field];
+        return val != null && String(val).toLowerCase().includes(normalizedTerm);
+      });
+      return Promise.resolve(filtered);
     }
 
     const db = await this._getDB();
@@ -647,28 +758,43 @@ export const DB = {
 
     const now = new Date().toISOString();
     const isSettings = storeName === 'settings';
-
-    const db = await this._getDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-
-    const keyPromises = [];
+    const keyField = storeName === 'settings' ? 'key' : 'id';
+    
     const savedRecords = [];
+    const keys = [];
 
     for (const record of records) {
       const recordToSave = { ...record };
+      if (!recordToSave[keyField]) {
+        recordToSave[keyField] = generateId(storeName.toUpperCase().slice(0, 3));
+      }
       if (!isSettings) {
         if (!recordToSave.createdAt) {
           recordToSave.createdAt = now;
         }
         recordToSave.updatedAt = now;
       }
-      keyPromises.push(promisifyRequest(store.put(recordToSave)));
       savedRecords.push(recordToSave);
+      keys.push(recordToSave[keyField]);
     }
 
-    const keys = await Promise.all(keyPromises);
-    await promisifyTransaction(tx);
+    if (useMemoryStorage) {
+      savedRecords.forEach(record => {
+        const idx = memoryDb[storeName].findIndex(r => r[keyField] === record[keyField]);
+        if (idx !== -1) {
+          memoryDb[storeName][idx] = record;
+        } else {
+          memoryDb[storeName].push(record);
+        }
+      });
+    } else {
+      const db = await this._getDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      const keyPromises = savedRecords.map(record => promisifyRequest(store.put(record)));
+      await Promise.all(keyPromises);
+      await promisifyTransaction(tx);
+    }
 
     // Sync batch to Firebase
     if (isFirebaseEnabled && firestoreDb) {
@@ -698,13 +824,22 @@ export const DB = {
       return;
     }
 
-    const db = await this._getDB();
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-
-    const deletePromises = ids.map((id) => promisifyRequest(store.delete(id)));
-    await Promise.all(deletePromises);
-    await promisifyTransaction(tx);
+    if (useMemoryStorage) {
+      const keyField = storeName === 'settings' ? 'key' : 'id';
+      ids.forEach(id => {
+        const idx = memoryDb[storeName].findIndex(r => r[keyField] === id);
+        if (idx !== -1) {
+          memoryDb[storeName].splice(idx, 1);
+        }
+      });
+    } else {
+      const db = await this._getDB();
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      const deletePromises = ids.map((id) => promisifyRequest(store.delete(id)));
+      await Promise.all(deletePromises);
+      await promisifyTransaction(tx);
+    }
 
     // Sync batch deletion to Firebase
     if (isFirebaseEnabled && firestoreDb) {
@@ -726,6 +861,17 @@ export const DB = {
    */
   async queryRange(storeName, indexName, range) {
     validateStoreName(storeName);
+    if (useMemoryStorage) {
+      // Basic range query simulation
+      const filtered = memoryDb[storeName].filter(r => {
+        const val = r[indexName];
+        if (val == null) return false;
+        const lowerBound = range.lower == null || (range.lowerOpen ? val > range.lower : val >= range.lower);
+        const upperBound = range.upper == null || (range.upperOpen ? val < range.upper : val <= range.upper);
+        return lowerBound && upperBound;
+      });
+      return Promise.resolve(filtered);
+    }
     const db = await this._getDB();
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);

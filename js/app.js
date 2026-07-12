@@ -125,12 +125,15 @@ async function bootstrap() {
     // 1. Initialize DB and stores
     await initializeStores();
 
-    // 2. Run legacy lead migration
-    const legacy = await fetchLegacyData();
-    if (legacy.length > 0) {
-      const migResult = await migrateLegacyLeads(legacy, DB);
-      console.info(`[Bootstrap] Legacy migration results:`, migResult);
-    }
+    // 2. Run legacy lead migration in background (non-blocking)
+    fetchLegacyData().then(async (legacy) => {
+      if (legacy && legacy.length > 0) {
+        const migResult = await migrateLegacyLeads(legacy, DB);
+        console.info(`[Bootstrap] Legacy migration completed in background:`, migResult);
+      }
+    }).catch(err => {
+      console.warn(`[Bootstrap] Background migration check bypassed:`, err);
+    });
 
     // 3. Initialize Router
     initRouter();
