@@ -226,8 +226,8 @@ Router.register('/leads', {
         <div id="bulkActionBar" class="bulk-action-bar" style="display: ${selectedLeads.size > 0 ? 'flex' : 'none'}; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); background: rgba(59, 130, 246, 0.15); border: 1px solid var(--color-primary); border-radius: var(--radius-md); margin-bottom: var(--space-5);">
           <span style="color: var(--text-primary); font-weight: var(--weight-bold);">${selectedLeads.size} leads selected</span>
           <div class="bulk-actions" style="display: flex; gap: var(--space-3);">
-            <button class="btn btn-sm btn-outline" id="bulkDeleteBtn">🗑️ Delete Selected</button>
-            <button class="btn btn-sm btn-outline" id="bulkStatusBtn">🔄 Change Stage</button>
+            <button class="btn btn-sm btn-outline btn-danger" id="bulkDeleteBtn">🗑️ Delete Selected</button>
+            <button class="btn btn-sm btn-outline" id="bulkMassUpdateBtn">✏️ Mass Update</button>
           </div>
         </div>
 
@@ -996,9 +996,9 @@ document.addEventListener('click', async (e) => {
     }
   }
 
-  // Bulk status change
-  if (e.target && e.target.id === 'bulkStatusBtn') {
-    showBulkStatusModal();
+  // Bulk mass update
+  if (e.target && e.target.id === 'bulkMassUpdateBtn') {
+    showBulkUpdateModal();
   }
 
   // Export CSV
@@ -1580,59 +1580,143 @@ async function showEditLeadModal(id) {
   });
 }
 
-// Bulk stage update modal
-function showBulkStatusModal() {
+// Bulk mass update modal
+async function showBulkUpdateModal() {
   const modalRoot = document.getElementById('modalRoot');
   if (!modalRoot) return;
 
+  const users = await DB.getAll('users');
   const stageOptions = PIPELINE_STAGES.map(s => `<option value="${s.id}">${s.icon} ${s.name}</option>`).join('');
+  const priorityOptions = PRIORITIES.map(p => `<option value="${p.id}">${p.icon} ${p.name}</option>`).join('');
 
   modalRoot.innerHTML = `
-    <div class="modal-overlay" id="bulkStatusModalOverlay">
-      <div class="modal">
+    <div class="modal-overlay" id="bulkUpdateModalOverlay">
+      <div class="modal animate-slideUp">
         <div class="modal-header">
-          <h3 class="modal-title">Bulk Move Pipeline Stage</h3>
-          <button class="modal-close" onclick="document.getElementById('bulkStatusModalOverlay').remove()">&times;</button>
+          <h3 class="modal-title">✏️ Mass Update Leads</h3>
+          <button class="modal-close" onclick="document.getElementById('bulkUpdateModalOverlay').remove()">&times;</button>
         </div>
         <div class="modal-body">
-          <p style="margin-bottom: var(--space-4); color: var(--text-muted);">Change the pipeline stage for all ${selectedLeads.size} selected leads.</p>
-          <div class="form-group">
-            <label class="form-label">New Stage</label>
-            <select id="bulkStageSelect" class="form-select">
+          <p style="margin-bottom: var(--space-4); color: var(--text-muted); font-size: var(--text-sm);">
+            Apply changes to all <strong>${selectedLeads.size}</strong> selected leads. Check the fields you want to update:
+          </p>
+          
+          <div class="form-group" style="margin-bottom: var(--space-4);">
+            <label class="checkbox-container" style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+              <input type="checkbox" id="updateOwnerCheck" style="cursor: pointer;" />
+              <span class="checkbox-box" style="margin-right: 6px;"></span>
+              <span style="font-weight: 600; font-size: var(--text-sm); color: var(--text-primary);">Assign Lead Owner</span>
+            </label>
+            <select id="bulkOwnerSelect" class="form-select" disabled style="background: rgba(255, 255, 255, 0.03);">
+              ${users.map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: var(--space-4);">
+            <label class="checkbox-container" style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+              <input type="checkbox" id="updateStageCheck" style="cursor: pointer;" />
+              <span class="checkbox-box" style="margin-right: 6px;"></span>
+              <span style="font-weight: 600; font-size: var(--text-sm); color: var(--text-primary);">Move Pipeline Stage</span>
+            </label>
+            <select id="bulkStageSelect" class="form-select" disabled style="background: rgba(255, 255, 255, 0.03);">
               ${stageOptions}
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: var(--space-4);">
+            <label class="checkbox-container" style="display: flex; align-items: center; margin-bottom: 6px; cursor: pointer;">
+              <input type="checkbox" id="updatePriorityCheck" style="cursor: pointer;" />
+              <span class="checkbox-box" style="margin-right: 6px;"></span>
+              <span style="font-weight: 600; font-size: var(--text-sm); color: var(--text-primary);">Update Priority</span>
+            </label>
+            <select id="bulkPrioritySelect" class="form-select" disabled style="background: rgba(255, 255, 255, 0.03);">
+              ${priorityOptions}
             </select>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" onclick="document.getElementById('bulkStatusModalOverlay').remove()">Cancel</button>
-          <button class="btn btn-primary" id="saveBulkStatusBtn">Update Stage</button>
+          <button class="btn btn-outline" onclick="document.getElementById('bulkUpdateModalOverlay').remove()">Cancel</button>
+          <button class="btn btn-primary" id="saveBulkUpdateBtn">Apply Changes</button>
         </div>
       </div>
     </div>
   `;
 
-  document.getElementById('saveBulkStatusBtn').addEventListener('click', async () => {
-    const newStage = document.getElementById('bulkStageSelect').value;
+  // Checkbox state toggles to enable/disable selects
+  document.getElementById('updateOwnerCheck').addEventListener('change', (e) => {
+    const sel = document.getElementById('bulkOwnerSelect');
+    sel.disabled = !e.target.checked;
+    sel.style.background = e.target.checked ? '' : 'rgba(255, 255, 255, 0.03)';
+  });
+  document.getElementById('updateStageCheck').addEventListener('change', (e) => {
+    const sel = document.getElementById('bulkStageSelect');
+    sel.disabled = !e.target.checked;
+    sel.style.background = e.target.checked ? '' : 'rgba(255, 255, 255, 0.03)';
+  });
+  document.getElementById('updatePriorityCheck').addEventListener('change', (e) => {
+    const sel = document.getElementById('bulkPrioritySelect');
+    sel.disabled = !e.target.checked;
+    sel.style.background = e.target.checked ? '' : 'rgba(255, 255, 255, 0.03)';
+  });
+
+  // Apply button handler
+  document.getElementById('saveBulkUpdateBtn').addEventListener('click', async () => {
+    const updateOwner = document.getElementById('updateOwnerCheck').checked;
+    const updateStage = document.getElementById('updateStageCheck').checked;
+    const updatePriority = document.getElementById('updatePriorityCheck').checked;
+    
+    if (!updateOwner && !updateStage && !updatePriority) {
+      renderToast('Please check at least one field to update.', 'warning');
+      return;
+    }
+
+    const newOwner = updateOwner ? document.getElementById('bulkOwnerSelect').value : null;
+    const newStage = updateStage ? document.getElementById('bulkStageSelect').value : null;
+    const newPriority = updatePriority ? document.getElementById('bulkPrioritySelect').value : null;
+
     AppStore.setLoading(true);
+
+    const usersList = await DB.getAll('users');
+    const ownerName = newOwner ? (usersList.find(u => u.id === newOwner)?.name || 'Unknown') : '';
 
     for (const id of selectedLeads) {
       const lead = await DB.get('leads', id);
       if (lead) {
-        lead.leadStatus = newStage;
-        lead.updatedAt = new Date().toISOString();
-        await LeadStore.updateLead(lead.id, lead);
-        await ActivityStore.logActivity({
-          leadId: id,
-          type: 'stage_change',
-          description: `Bulk moved lead "${lead.companyName}" to stage: ${newStage}`
-        });
+        let changed = false;
+        let desc = [];
+
+        if (updateOwner) {
+          lead.leadOwner = newOwner;
+          desc.push(`Owner assigned to ${ownerName}`);
+          changed = true;
+        }
+        if (updateStage) {
+          lead.leadStatus = newStage;
+          desc.push(`Stage moved to ${newStage}`);
+          changed = true;
+        }
+        if (updatePriority) {
+          lead.priority = newPriority;
+          desc.push(`Priority set to ${newPriority}`);
+          changed = true;
+        }
+
+        if (changed) {
+          lead.updatedAt = new Date().toISOString();
+          await LeadStore.updateLead(lead.id, lead);
+          await ActivityStore.logActivity({
+            leadId: id,
+            type: 'lead_update',
+            description: `Mass Update: ` + desc.join(', ')
+          });
+        }
       }
     }
 
     selectedLeads.clear();
     updateBulkActionBar();
-    renderToast('Bulk stage update completed.', 'success');
-    document.getElementById('bulkStatusModalOverlay').remove();
+    renderToast('Mass update completed successfully.', 'success');
+    document.getElementById('bulkUpdateModalOverlay').remove();
     AppStore.setLoading(false);
     Router.reload();
   });
