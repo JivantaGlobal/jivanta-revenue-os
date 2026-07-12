@@ -15,16 +15,24 @@
     window.addEventListener('error', function(e) {
       const loader = document.getElementById('loadingScreen');
       if (loader) {
+        let msg = e.message || 'Resource failed to load';
+        let src = '';
+        if (e.target && (e.target.src || e.target.href)) {
+          msg = `Failed to load resource: ${e.target.src || e.target.href}`;
+          src = e.target.tagName;
+        } else if (e.filename) {
+          src = `${e.filename.split('/').pop()}:${e.lineno}:${e.colno}`;
+        }
         loader.innerHTML = `
           <div style="background: rgba(220, 38, 38, 0.95); padding: 24px; border-radius: 8px; max-width: 500px; color: white; text-align: left; font-family: monospace; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); line-height: 1.5; margin: 20px auto;">
             <h3 style="margin-top: 0; color: #fecaca; display: flex; align-items: center; gap: 8px; font-size: 16px;">⚠️ System Load Exception</h3>
-            <p style="margin-bottom: 8px; font-size: 13px;"><strong>Error:</strong> ${e.message}</p>
-            <p style="margin-bottom: 8px; font-size: 13px;"><strong>Source:</strong> ${e.filename.split('/').pop()}:${e.lineno}:${e.colno}</p>
+            <p style="margin-bottom: 8px; font-size: 13px;"><strong>Error:</strong> ${msg}</p>
+            ${src ? `<p style="margin-bottom: 8px; font-size: 13px;"><strong>Source:</strong> ${src}</p>` : ''}
             <button onclick="window.location.reload(true)" style="background: white; color: black; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 12px; font-size: 12px; transition: background 0.2s;">Force Reload</button>
           </div>
         `;
       }
-    });
+    }, true); // Enable capturing phase
     window.addEventListener('unhandledrejection', function(e) {
       const loader = document.getElementById('loadingScreen');
       if (loader) {
