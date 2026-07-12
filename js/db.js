@@ -284,9 +284,29 @@ export const DB = {
    */
   async initFirebase() {
     try {
+      // 1. Dynamically inject Firebase script tags if not already present
+      if (!window.firebase) {
+        console.info('[Firebase] Script not found on window. Injecting SDK script tags dynamically...');
+        
+        const loadScript = (src) => {
+          return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error(`Failed to load Firebase script: ${src}`));
+            document.head.appendChild(script);
+          });
+        };
+
+        // Load App script first, then Firestore script
+        await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+        await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js');
+      }
+
       const firebase = window.firebase;
       if (!firebase) {
-        throw new Error('Firebase global SDK object not found on window.');
+        throw new Error('Firebase global SDK object not found on window after dynamic load.');
       }
 
       const savedConfig = localStorage.getItem('jivanta_firebase_config');
