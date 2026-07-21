@@ -233,12 +233,8 @@ export function renderSidebar(currentPath, options = {}) {
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
       <!-- Brand/Header -->
       <div class="sidebar-header">
-        <div class="sidebar-logo">
-          <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px; display:block;">
-            <polygon points="12 2 2 7 12 12 22 7 12 2" />
-            <polyline points="2 17 12 22 22 17" />
-            <polyline points="2 12 12 17 22 12" />
-          </svg>
+        <div class="sidebar-logo" style="background: none; padding: 0; box-shadow: none;">
+          <img src="/assets/logo.jpg" alt="Logo" style="width: 28px; height: 28px; border-radius: 50%; box-shadow: 0 0 10px rgba(74, 222, 128, 0.2); display: block;">
         </div>
         <div class="sidebar-brand">
           <span class="sidebar-brand-name">Jivanta</span>

@@ -43,12 +43,8 @@ Router.register('/login', {
       <div class="login-container animate-slideUp">
         <div class="login-card">
           <div class="login-card-header" style="text-align: center; margin-bottom: var(--space-6);">
-            <div class="login-logo-glow" style="margin: 0 auto var(--space-3) auto; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: var(--radius-lg); background: var(--gradient-1); box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);">
-              <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 32px; height: 32px; color: #fff;">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
+            <div class="login-logo-glow" style="margin: 0 auto var(--space-3) auto; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: none; box-shadow: none;">
+              <img class="logo-svg" src="/assets/logo.jpg" alt="Logo" style="width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 0 20px rgba(74, 222, 128, 0.2); cursor: pointer;">
             </div>
             <h1 class="login-title" style="font-size: var(--text-2xl); font-weight: var(--weight-extrabold); letter-spacing: var(--tracking-tight); color: var(--text-primary);">Jivanta Global</h1>
             <p class="login-subtitle" style="font-size: var(--text-sm); color: var(--text-muted); margin-top: var(--space-1);">Revenue OS CRM</p>
