@@ -35,16 +35,22 @@ function renderHeaderCell(label, field) {
   if (!field) return `<th>${label}</th>`;
   
   const isSorted = sortField === field;
-  let arrow = '↕️'; // Up-down arrow for unsorted fields
+  
+  // Clean SVG icons for sorting
+  let arrow = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>`;
   if (isSorted) {
-    arrow = sortDir === 1 ? '▲' : '▼'; // Up or Down solid arrows
+    if (sortDir === 1) {
+      arrow = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
+    } else {
+      arrow = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-primary);"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>`;
+    }
   }
   
   return `
-    <th class="sortable-header" data-sort-field="${field}" data-action="sort" style="cursor: pointer; user-select: none;">
-      <div style="display: inline-flex; align-items: center; gap: 4px;">
-        ${label}
-        <span class="sort-icon" style="font-size: 10px; opacity: ${isSorted ? 1 : 0.4}; color: ${isSorted ? 'var(--color-primary)' : 'inherit'};">${arrow}</span>
+    <th class="sortable-header" data-sort-field="${field}" data-action="sort" style="cursor: pointer; user-select: none; transition: background 0.2s; padding: var(--space-3) var(--space-4);" onmouseover="this.style.background='var(--bg-card-hover)'" onmouseout="this.style.background='transparent'">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <span>${label}</span>
+        <span class="sort-icon" style="display: flex; align-items: center; justify-content: center;">${arrow}</span>
       </div>
     </th>
   `;
@@ -245,11 +251,11 @@ Router.register('/leads', {
                   </th>
                   ${renderHeaderCell('Company Name', 'companyName')}
                   ${renderHeaderCell('Location', 'country')}
-                  <th>Products</th>
+                  ${renderHeaderCell('Products', 'products')}
                   ${renderHeaderCell('Date Added', 'createdAt')}
                   ${renderHeaderCell('Contact Person', 'contactPerson')}
-                  <th>Phone</th>
-                  <th>Email</th>
+                  ${renderHeaderCell('Phone', 'mobile')}
+                  ${renderHeaderCell('Email', 'email')}
                   ${renderHeaderCell('Owner', 'leadOwner')}
                   ${renderHeaderCell('Stage', 'leadStatus')}
                   ${renderHeaderCell('Priority', 'priority')}
