@@ -140,6 +140,7 @@ Router.register('/leads', {
           <td class="clickable-row-cell">${lead.country} ${lead.state ? `<span style="color: var(--text-muted); font-size: var(--text-xs);">(${lead.state})</span>` : ''}</td>
           <td class="clickable-row-cell">${prodBadges}</td>
           <td class="clickable-row-cell">${formatDate(lead.createdAt)}</td>
+          <td class="clickable-row-cell" style="font-size: var(--text-xs); color: var(--text-muted);">${formatDate(lead.updatedAt || lead.createdAt)}</td>
           <td class="clickable-row-cell">${lead.contactPerson || '—'}</td>
           <td class="clickable-row-cell">${lead.mobile || '—'}</td>
           <td class="clickable-row-cell">${lead.email || '—'}</td>
@@ -222,6 +223,17 @@ Router.register('/leads', {
                 ${userOptions}
               </select>
             </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <select id="sortSelect" class="form-select" style="border: 1px solid var(--color-primary); background: rgba(59, 130, 246, 0.08); font-weight: 600;">
+                <option value="createdAt_desc" ${sortField === 'createdAt' && sortDir === -1 ? 'selected' : ''}>📅 Date Added (Newest First)</option>
+                <option value="createdAt_asc" ${sortField === 'createdAt' && sortDir === 1 ? 'selected' : ''}>📅 Date Added (Oldest First)</option>
+                <option value="updatedAt_desc" ${sortField === 'updatedAt' && sortDir === -1 ? 'selected' : ''}>⚡ Last Activity (Recent First)</option>
+                <option value="updatedAt_asc" ${sortField === 'updatedAt' && sortDir === 1 ? 'selected' : ''}>⚡ Last Activity (Oldest First)</option>
+                <option value="companyName_asc" ${sortField === 'companyName' && sortDir === 1 ? 'selected' : ''}>🏢 Company Name (A-Z)</option>
+                <option value="companyName_desc" ${sortField === 'companyName' && sortDir === -1 ? 'selected' : ''}>🏢 Company Name (Z-A)</option>
+                <option value="priority_desc" ${sortField === 'priority' && sortDir === -1 ? 'selected' : ''}>⭐ Priority (High to Low)</option>
+              </select>
+            </div>
             <div class="form-group" style="margin-bottom: 0; display: flex; align-items: flex-end;">
               <button class="btn btn-outline btn-block" id="clearFiltersBtn">Reset</button>
             </div>
@@ -253,6 +265,7 @@ Router.register('/leads', {
                   ${renderHeaderCell('Location', 'country')}
                   ${renderHeaderCell('Products', 'products')}
                   ${renderHeaderCell('Date Added', 'createdAt')}
+                  ${renderHeaderCell('Last Activity', 'updatedAt')}
                   ${renderHeaderCell('Contact Person', 'contactPerson')}
                   ${renderHeaderCell('Phone', 'mobile')}
                   ${renderHeaderCell('Email', 'email')}
@@ -263,7 +276,7 @@ Router.register('/leads', {
                 </tr>
               </thead>
               <tbody>
-                ${tableRowsHtml || `<tr><td colspan="12" style="text-align: center; padding: var(--space-6); color: var(--text-muted);">No leads match the filters.</td></tr>`}
+                ${tableRowsHtml || `<tr><td colspan="13" style="text-align: center; padding: var(--space-6); color: var(--text-muted);">No leads match the filters.</td></tr>`}
               </tbody>
             </table>
           </div>
@@ -544,6 +557,51 @@ Router.register('/leads/:id', {
                   <p style="margin-top: var(--space-1); line-height: 1.5; font-size: var(--text-sm);">${lead.importExportEvidence || 'No historical import/export evidence verified.'}</p>
                 </div>
               </div>
+            <!-- Dedicated Lead Notes & Activity Tracker -->
+            <div class="card" style="border-left: 4px solid var(--color-primary);">
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 class="card-title">📝 Lead Notes & Activity Tracker</h3>
+                  <p class="card-subtitle">Enter meeting summaries, outreach logs, and complete lead tracking notes</p>
+                </div>
+                <span class="badge badge-primary">${(lead.notes || []).length} Notes Saved</span>
+              </div>
+              <div class="card-body">
+                <form id="dedicatedNotesForm" style="margin-bottom: var(--space-5);">
+                  <input type="hidden" id="dedicatedNoteLeadId" value="${lead.id}" />
+                  <div class="form-group" style="margin-bottom: var(--space-3);">
+                    <textarea id="dedicatedNoteInput" class="form-textarea" rows="3" required placeholder="Type complete outreach notes, meeting key points, or follow-up requirements here..." style="font-size: var(--text-sm); line-height: 1.5;"></textarea>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: var(--text-xs); color: var(--text-muted);">
+                      <span>💡 Notes automatically update the <strong>Last Activity</strong> date.</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">📌 Save Note to Tracker</button>
+                  </div>
+                </form>
+
+                <!-- List of Saved Notes -->
+                <div class="saved-notes-list">
+                  <h4 style="font-size: var(--text-xs); text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: var(--space-3); border-bottom: 1px solid var(--border); padding-bottom: 6px;">Notes History</h4>
+                  ${Array.isArray(lead.notes) && lead.notes.length > 0 ? `
+                    <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                      ${lead.notes.slice().reverse().map(n => `
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3);">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-weight: 600; font-size: var(--text-xs); color: var(--color-primary);">👤 ${esc(n.createdBy || 'Team Member')}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">${new Date(n.createdAt).toLocaleString()}</span>
+                          </div>
+                          <p style="font-size: var(--text-sm); line-height: 1.5; color: var(--text-primary); white-space: pre-wrap; margin-bottom: 6px;">${esc(n.text)}</p>
+                          <div style="display: flex; justify-content: flex-end; gap: var(--space-2);">
+                            <button class="btn btn-xs btn-outline edit-timeline-note-btn" data-id="${n.id}">✏️ Edit</button>
+                            <button class="btn btn-xs btn-outline btn-danger-outline delete-timeline-note-btn" data-id="${n.id}">🗑️ Delete</button>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : '<p style="color: var(--text-muted); font-size: var(--text-sm); text-align: center; padding: var(--space-3);">No notes logged yet. Use the form above to add your first note!</p>'}
+                </div>
+              </div>
             </div>
 
             <!-- Outreach Templates -->
@@ -764,6 +822,14 @@ document.addEventListener('change', async (e) => {
   if (e.target && e.target.id === 'filterStatus') { currentFilters.status = e.target.value; currentPage = 1; Router.reload(); }
   if (e.target && e.target.id === 'filterPriority') { currentFilters.priority = e.target.value; currentPage = 1; Router.reload(); }
   if (e.target && e.target.id === 'filterOwner') { currentFilters.owner = e.target.value; currentPage = 1; Router.reload(); }
+  if (e.target && e.target.id === 'sortSelect') {
+    const val = e.target.value;
+    const parts = val.split('_');
+    sortField = parts[0];
+    sortDir = parts[1] === 'asc' ? 1 : -1;
+    currentPage = 1;
+    Router.reload();
+  }
 
   // Lead Owner Assignment dropdown
   if (e.target && e.target.id === 'leadOwnerSelect') {
@@ -1183,6 +1249,38 @@ document.addEventListener('submit', async (e) => {
       });
 
       renderToast('Note added successfully.', 'success');
+      Router.reload();
+    }
+  }
+
+  // Dedicated Lead Notes & Activity Tracker Form
+  if (e.target && e.target.id === 'dedicatedNotesForm') {
+    e.preventDefault();
+    const leadId = document.getElementById('dedicatedNoteLeadId').value;
+    const text = document.getElementById('dedicatedNoteInput').value;
+
+    const lead = await DB.get('leads', leadId);
+    if (lead) {
+      const now = new Date().toISOString();
+      const newNote = {
+        id: generateId('NOTE'),
+        text: text,
+        createdAt: now,
+        createdBy: AppStore.getState().currentUser?.name || 'Admin'
+      };
+      
+      lead.notes = lead.notes || [];
+      lead.notes.unshift(newNote);
+      lead.updatedAt = now;
+
+      await LeadStore.updateLead(lead.id, lead);
+      await ActivityStore.logActivity({
+        leadId: leadId,
+        type: 'note',
+        description: `Added tracking note: "${text.substring(0, 40)}..."`
+      });
+
+      renderToast('Lead tracking note saved successfully.', 'success');
       Router.reload();
     }
   }
